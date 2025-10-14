@@ -13,10 +13,19 @@ const SubscribersList = lazy(() =>
 const ShopData = lazy(() => import("../modules/shop/ShopData.jsx"));
 const BlogData = lazy(() => import("../modules/blog/BlogData.jsx"));
 const Settings = lazy(() => import("../modules/settings/Settings.jsx"));
+const Login = lazy(() => import("../modules/auth/Login.jsx"));
 
 const Loading = () => <div className="card p-8 text-muted">Loading…</div>;
 
 const router = createBrowserRouter([
+  {
+    path: PATHS.AUTH_LOGIN,
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Login />
+      </Suspense>
+    ),
+  },
   {
     path: PATHS.ROOT,
     element: <AdminLayout />,

@@ -120,4 +120,11 @@
 @layer utilities {
   .brand-glow { box-shadow: 0 0 0 2px hsla(var(--primary)/.2), 0 0 42px hsla(var(--primary)/.35); }
   .bg-gradient-brand { background: radial-gradient(120% 120% at 50% -20%, hsla(var(--primary)/.22) 0%, transparent 55%), hsl(var(--bg)); }
+
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .animate-float-slow { animation: floaty 6s ease-in-out infinite; }
+  .animate-float-slower { animation: floaty 10s ease-in-out infinite; }
 }

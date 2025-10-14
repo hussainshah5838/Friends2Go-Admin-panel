@@ -12,7 +12,7 @@ export default function Header({
   title = "Admin",
   // Default to centralized asset export; can still be overridden via prop
   logoSrc = AppLogo,
-  avatarSrc = "/profile.png",
+  avatarSrc = AppLogo,
   notifications = 0,
   notificationItems = null,
   onMenuClick,
@@ -89,7 +89,11 @@ export default function Header({
             <MdMenu className="h-5 w-5 text-muted" />
           </button>
           {/* Compact logo on mobile */}
-          <img src={logoSrc} alt="Logo" className="h-7 w-7 rounded-lg sm:hidden" />
+          <img
+            src={logoSrc}
+            alt="Logo"
+            className="h-7 w-7 rounded-lg sm:hidden"
+          />
           <div className="hidden sm:flex items-center gap-2">
             <img src={logoSrc} alt="Logo" className="h-7 w-7 rounded-lg" />
             <div className="text-sm text-muted">Welcome back,</div>
@@ -151,7 +155,7 @@ export default function Header({
             {openNotif && (
               <div
                 role="menu"
-                className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-1rem)] glass border border-border rounded-xl overflow-hidden"
+                className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-1rem)] glass bg-bg-soft/95 border border-border rounded-xl overflow-hidden"
               >
                 <div className="px-4 py-3 border-b border-border">
                   <div className="text-sm font-semibold">Notifications</div>
@@ -208,6 +212,10 @@ export default function Header({
               src={avatarSrc}
               alt="User avatar"
               className="h-full w-full object-cover"
+              onError={(e) => {
+                if (e.currentTarget.src !== logoSrc)
+                  e.currentTarget.src = logoSrc;
+              }}
             />
           </button>
         </div>
@@ -231,7 +239,11 @@ export default function Header({
                   className="input h-11 pl-10"
                 />
               </div>
-              <button type="button" className="btn-ghost h-11" onClick={() => setOpenMobileSearch(false)}>
+              <button
+                type="button"
+                className="btn-ghost h-11"
+                onClick={() => setOpenMobileSearch(false)}
+              >
                 Cancel
               </button>
               <button type="submit" className="btn h-11 px-4">

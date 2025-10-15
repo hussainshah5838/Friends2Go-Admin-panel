@@ -76,7 +76,7 @@ export default function Header({
   }, [openNotif]);
 
   return (
-    <header className="sticky top-0 z-30 w-full">
+    <header className="sticky top-0 z-30 w-full mb-2.5 md:mb-4">
       {/* full-width header: use w-full and max-w-full so the header stretches across the viewport */}
       <div className="glass h-16 w-full max-w-full flex items-center gap-3 px-3 sm:px-5 relative">
         {/* Left */}

@@ -1,7 +1,7 @@
 import React from "react";
 import SkeletonRow from "./SkeletonRow";
 
-export default function RolesTable({
+function RolesTableCmp({
   loading,
   items,
   page,
@@ -19,12 +19,13 @@ export default function RolesTable({
     <div className="card">
       <div className="hidden sm:block overflow-x-auto">
         <table className="min-w-full text-sm">
+          <caption className="sr-only">Defined roles</caption>
           <thead className="text-left">
             <tr className="text-muted">
-              <th className="px-4 py-3 font-medium">Role</th>
-              <th className="px-4 py-3 font-medium">Description</th>
-              <th className="px-4 py-3 font-medium">Permissions</th>
-              <th className="px-4 py-3 font-medium text-right">Actions</th>
+              <th scope="col" className="px-4 py-3 font-medium">Role</th>
+              <th scope="col" className="px-4 py-3 font-medium">Description</th>
+              <th scope="col" className="px-4 py-3 font-medium">Permissions</th>
+              <th scope="col" className="px-4 py-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -53,10 +54,10 @@ export default function RolesTable({
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex gap-2">
-                      <button className="btn-ghost" onClick={() => onEdit(r)}>
+                      <button className="btn-ghost" aria-label={`Edit role ${r.name}`} onClick={() => onEdit(r)}>
                         Edit
                       </button>
-                      <button className="btn-ghost" onClick={() => onDelete(r)}>
+                      <button className="btn-ghost" aria-label={`Delete role ${r.name}`} onClick={() => onDelete(r)}>
                         Delete
                       </button>
                     </div>
@@ -75,10 +76,10 @@ export default function RolesTable({
       </div>
 
       {/* Mobile list */}
-      <div className="sm:hidden">
+      <div className="sm:hidden" role="list" aria-label="Defined roles">
         {loading &&
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="animate-pulse p-3 border-b border-border/40">
+            <div role="listitem" key={i} className="animate-pulse p-3 border-b border-border/40">
               <div className="h-4 bg-white/10 rounded w-2/3 mb-2" />
               <div className="h-3 bg-white/10 rounded w-1/2" />
             </div>
@@ -88,7 +89,7 @@ export default function RolesTable({
           items.map((r) => {
             const permCount = Object.values(r.perms || {}).filter(Boolean).length;
             return (
-              <div key={r._id} className="p-3 border-b border-border/40">
+              <div role="listitem" key={r._id} className="p-3 border-b border-border/40">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">{r.name}</div>
@@ -100,8 +101,8 @@ export default function RolesTable({
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 shrink-0">
-                    <button className="btn-ghost" onClick={() => onEdit(r)}>Edit</button>
-                    <button className="btn-ghost" onClick={() => onDelete(r)}>Delete</button>
+                    <button className="btn-ghost" aria-label={`Edit role ${r.name}`} onClick={() => onEdit(r)}>Edit</button>
+                    <button className="btn-ghost" aria-label={`Delete role ${r.name}`} onClick={() => onDelete(r)}>Delete</button>
                   </div>
                 </div>
               </div>
@@ -122,10 +123,10 @@ export default function RolesTable({
           — {total} total
         </div>
         <div className="flex gap-2">
-          <button className="btn-ghost" disabled={!hasPrev} onClick={onPrev}>
+          <button className="btn-ghost" aria-label="Previous page" disabled={!hasPrev} onClick={onPrev}>
             Prev
           </button>
-          <button className="btn-ghost" disabled={!hasNext} onClick={onNext}>
+          <button className="btn-ghost" aria-label="Next page" disabled={!hasNext} onClick={onNext}>
             Next
           </button>
         </div>
@@ -133,3 +134,5 @@ export default function RolesTable({
     </div>
   );
 }
+
+export default React.memo(RolesTableCmp);

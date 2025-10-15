@@ -1,10 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  listUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "./api/users.service";
+import { listUsers, createUser, updateUser, deleteUser } from "./api/users.service";
 import UserDrawer from "./components/UserDrawer";
 import DeleteConfirm from "./components/DeleteConfirm";
 import UserTable from "./components/UserTable";
@@ -77,7 +72,6 @@ export default function UsersList() {
     await deleteUser(delUser._id);
     setDelOpen(false);
     setDelUser(null);
-    // if we deleted last item on page, go back a page if needed
     const newCount = total - 1;
     const lastPage = Math.max(1, Math.ceil(newCount / LIMIT));
     if (page > lastPage) setPage(lastPage);
@@ -86,63 +80,61 @@ export default function UsersList() {
 
   return (
     <div className="space-y-5">
-      {/* Header bar */}
+      {/* Header / Filters */}
       <div className="card p-4">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-          <div className="flex-1">
-            <label className="block">
-              <span className="text-sm text-muted">Search</span>
-              <input
-                className="input mt-1"
-                placeholder="Search name or email…"
-                value={q}
-                onChange={(e) => {
-                  setPage(1);
-                  setQ(e.target.value);
-                }}
-              />
-            </label>
-          </div>
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-end">
+          {/* Search spans wider on small/large to avoid cramping */}
+          <label className="block sm:col-span-2 lg:col-span-2">
+            <span className="text-sm text-muted">Search</span>
+            <input
+              className="input mt-1 w-full"
+              placeholder="Search name or email…"
+              value={q}
+              onChange={(e) => {
+                setPage(1);
+                setQ(e.target.value);
+              }}
+            />
+          </label>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <label className="block">
-              <span className="text-sm text-muted">Role</span>
-              <select
-                className="input mt-1"
-                value={role}
-                onChange={(e) => {
-                  setPage(1);
-                  setRole(e.target.value);
-                }}
-              >
-                <option value="">All</option>
-                <option value="fan">Fan</option>
-                <option value="business">Business</option>
-                <option value="admin">Admin</option>
-              </select>
-            </label>
+          <label className="block">
+            <span className="text-sm text-muted">Role</span>
+            <select
+              className="input mt-1 w-full"
+              value={role}
+              onChange={(e) => {
+                setPage(1);
+                setRole(e.target.value);
+              }}
+            >
+              <option value="">All</option>
+              <option value="fan">Fan</option>
+              <option value="business">Business</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
 
-            <label className="block">
-              <span className="text-sm text-muted">Status</span>
-              <select
-                className="input mt-1"
-                value={status}
-                onChange={(e) => {
-                  setPage(1);
-                  setStatus(e.target.value);
-                }}
-              >
-                <option value="">All</option>
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-              </select>
-            </label>
+          <label className="block">
+            <span className="text-sm text-muted">Status</span>
+            <select
+              className="input mt-1 w-full"
+              value={status}
+              onChange={(e) => {
+                setPage(1);
+                setStatus(e.target.value);
+              }}
+            >
+              <option value="">All</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </label>
 
-            <div className="flex sm:justify-end items-end">
-              <button className="btn w-full sm:w-auto" onClick={openCreate}>
-                Add New User
-              </button>
-            </div>
+          {/* Add button takes full width on mobile, right-aligned otherwise */}
+          <div className="sm:col-span-2 lg:col-span-1 flex sm:justify-end">
+            <button className="btn w-full sm:w-auto" onClick={openCreate}>
+              Add New User
+            </button>
           </div>
         </div>
       </div>

@@ -24,10 +24,12 @@ export default function LocalizationTab({ initial, onSave, saving }) {
   }
 
   return (
-    <form onSubmit={submit} className="card p-5 space-y-4">
-      <label className="block">
+    <form onSubmit={submit} aria-busy={saving ? "true" : "false"} className="card space-y-4 max-w-3xl mx-auto">
+      <label className="block" htmlFor="defaultLang">
         <span className="text-sm text-muted">Default language</span>
         <select
+          id="defaultLang"
+          name="defaultLang"
           className="input mt-1"
           value={m.defaultLang}
           onChange={(e) => setM({ ...m, defaultLang: e.target.value })}
@@ -40,20 +42,24 @@ export default function LocalizationTab({ initial, onSave, saving }) {
         </select>
       </label>
 
-      <label className="block">
+      <label className="block" htmlFor="supportedLangs">
         <span className="text-sm text-muted">
           Supported languages (comma separated)
         </span>
         <input
+          id="supportedLangs"
+          name="supportedLangs"
           className="input mt-1"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="en, nl, de"
+          autoCapitalize="off"
+          autoCorrect="off"
         />
       </label>
 
       <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
-        <button className="btn w-full sm:w-auto" disabled={saving}>
+        <button className="btn w-full sm:w-auto" disabled={saving} aria-disabled={saving ? "true" : "false"}>
           {saving ? "Saving…" : "Save changes"}
         </button>
       </div>

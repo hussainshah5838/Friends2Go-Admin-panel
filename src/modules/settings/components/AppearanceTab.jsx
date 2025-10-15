@@ -16,10 +16,12 @@ export default function AppearanceTab({ initial, onSave, saving }) {
   }
 
   return (
-    <form onSubmit={submit} className="card p-5 space-y-4">
-      <label className="block">
+    <form onSubmit={submit} aria-busy={saving ? "true" : "false"} className="card space-y-4 max-w-3xl mx-auto">
+      <label className="block" htmlFor="themeMode">
         <span className="text-sm text-muted">Theme mode</span>
         <select
+          id="themeMode"
+          name="themeMode"
           className="input mt-1"
           value={m.themeMode}
           onChange={(e) => setM({ ...m, themeMode: e.target.value })}
@@ -29,18 +31,21 @@ export default function AppearanceTab({ initial, onSave, saving }) {
         </select>
       </label>
 
-      <label className="block">
+      <label className="block" htmlFor="primaryColor">
         <span className="text-sm text-muted">Primary color</span>
         <input
+          id="primaryColor"
+          name="primaryColor"
           type="color"
           className="input mt-1 h-12"
           value={m.primaryColor}
           onChange={(e) => setM({ ...m, primaryColor: e.target.value })}
+          aria-label="Pick a primary accent color"
         />
       </label>
 
       <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
-        <button className="btn w-full sm:w-auto" disabled={saving}>
+        <button className="btn w-full sm:w-auto" disabled={saving} aria-disabled={saving ? "true" : "false"}>
           {saving ? "Saving…" : "Save changes"}
         </button>
       </div>

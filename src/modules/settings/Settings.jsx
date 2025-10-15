@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Tabs from "./components/Tabs";
-import GeneralTab from "./components/GeneralTab";
-import NotificationsTab from "./components/NotificationsTab";
-import AppearanceTab from "./components/AppearanceTab";
-import LocalizationTab from "./components/LocalizationTab";
-import IntegrationsTab from "./components/integrations/IntegrationsTab";
-import RolesTab from "./components/roles/RolesTab";
+const GeneralTab = React.lazy(() => import("./components/GeneralTab"));
+const NotificationsTab = React.lazy(() => import("./components/NotificationsTab"));
+const AppearanceTab = React.lazy(() => import("./components/AppearanceTab"));
+const LocalizationTab = React.lazy(() => import("./components/LocalizationTab"));
+const IntegrationsTab = React.lazy(() => import("./components/integrations/IntegrationsTab"));
+const RolesTab = React.lazy(() => import("./components/roles/RolesTab"));
 
 import {
   fetchAllSettings,
@@ -15,7 +15,7 @@ import {
   saveLocalization,
 } from "./api/settings.service";
 
-const TAB_ITEMS = [
+const TAB_ITEMS_STATIC = [
   { value: "general", label: "General" },
   { value: "notifications", label: "Notifications" },
   { value: "appearance", label: "Appearance" },
@@ -34,7 +34,7 @@ export default function Settings() {
   const [appearance, setAppearance] = useState(null);
   const [localization, setLocalization] = useState(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const all = await fetchAllSettings();
@@ -45,90 +45,128 @@ export default function Settings() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
-  async function withSaving(fn) {
+  const withSaving = useCallback(async (fn) => {
     setSaving(true);
     try {
       await fn();
     } finally {
       setSaving(false);
     }
-  }
+  }, []);
+
+  const TAB_ITEMS = useMemo(() => TAB_ITEMS_STATIC, []);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-lg font-semibold">Settings</h1>
+    <section
+      aria-labelledby="settings-heading"
+      aria-busy={loading ? "true" : "false"}
+      className="space-y-5 w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-0"
+    >
+      {/* Header: title + tabs. Tabs take a full row on mobile, sit inline on wide screens. */}
+      <div className="flex flex-col gap-3 min-w-0">
+        <div className="flex items-center justify-between gap-3 min-w-0">
+          <h1 id="settings-heading" className="text-lg sm:text-xl font-semibold truncate">
+            Settings
+          </h1>
+        </div>
         <Tabs value={tab} onChange={setTab} items={TAB_ITEMS} />
       </div>
 
       {loading && (
-        <div className="card p-6 animate-pulse text-muted">
+        <div className="card animate-pulse text-muted max-w-3xl mx-auto min-h-20 grid place-items-center" role="status" aria-live="polite">
           Loading settings…
         </div>
       )}
 
       {!loading && tab === "general" && (
-        <GeneralTab
-          initial={general}
-          saving={saving}
-          onSave={(m) =>
-            withSaving(async () => {
-              const res = await saveGeneral(m);
-              setGeneral(res);
-            })
-          }
-        />
+        <section id="panel-general" role="tabpanel" aria-labelledby="tab-general">
+          <Suspense fallback={<div className="card max-w-3xl mx-auto min-h-24 grid place-items-center">Loading…</div>}>
+            <GeneralTab
+              initial={general}
+              saving={saving}
+              onSave={(m) =>
+                withSaving(async () => {
+                  const res = await saveGeneral(m);
+                  setGeneral(res);
+                })
+              }
+            />
+          </Suspense>
+        </section>
       )}
 
       {!loading && tab === "notifications" && (
-        <NotificationsTab
-          initial={notifications}
-          saving={saving}
-          onSave={(m) =>
-            withSaving(async () => {
-              const res = await saveNotifications(m);
-              setNotifications(res);
-            })
-          }
-        />
+        <section id="panel-notifications" role="tabpanel" aria-labelledby="tab-notifications">
+          <Suspense fallback={<div className="card max-w-3xl mx-auto min-h-24 grid place-items-center">Loading…</div>}>
+            <NotificationsTab
+              initial={notifications}
+              saving={saving}
+              onSave={(m) =>
+                withSaving(async () => {
+                  const res = await saveNotifications(m);
+                  setNotifications(res);
+                })
+              }
+            />
+          </Suspense>
+        </section>
       )}
 
       {!loading && tab === "appearance" && (
-        <AppearanceTab
-          initial={appearance}
-          saving={saving}
-          onSave={(m) =>
-            withSaving(async () => {
-              const res = await saveAppearance(m);
-              setAppearance(res);
-              // optional: reflect theme instantly via CSS vars / provider
-            })
-          }
-        />
+        <section id="panel-appearance" role="tabpanel" aria-labelledby="tab-appearance">
+          <Suspense fallback={<div className="card max-w-3xl mx-auto min-h-24 grid place-items-center">Loading…</div>}>
+            <AppearanceTab
+              initial={appearance}
+              saving={saving}
+              onSave={(m) =>
+                withSaving(async () => {
+                  const res = await saveAppearance(m);
+                  setAppearance(res);
+                })
+              }
+            />
+          </Suspense>
+        </section>
       )}
 
       {!loading && tab === "localization" && (
-        <LocalizationTab
-          initial={localization}
-          saving={saving}
-          onSave={(m) =>
-            withSaving(async () => {
-              const res = await saveLocalization(m);
-              setLocalization(res);
-            })
-          }
-        />
+        <section id="panel-localization" role="tabpanel" aria-labelledby="tab-localization">
+          <Suspense fallback={<div className="card max-w-3xl mx-auto min-h-24 grid place-items-center">Loading…</div>}>
+            <LocalizationTab
+              initial={localization}
+              saving={saving}
+              onSave={(m) =>
+                withSaving(async () => {
+                  const res = await saveLocalization(m);
+                  setLocalization(res);
+                })
+              }
+            />
+          </Suspense>
+        </section>
       )}
 
-      {!loading && tab === "integrations" && <IntegrationsTab />}
+      {!loading && tab === "integrations" && (
+        <section id="panel-integrations" role="tabpanel" aria-labelledby="tab-integrations">
+          <Suspense fallback={<div className="card min-h-24 grid place-items-center">Loading…</div>}>
+            <IntegrationsTab />
+          </Suspense>
+        </section>
+      )}
 
-      {!loading && tab === "roles" && <RolesTab />}
-    </div>
+      {!loading && tab === "roles" && (
+        <section id="panel-roles" role="tabpanel" aria-labelledby="tab-roles">
+          <Suspense fallback={<div className="card min-h-24 grid place-items-center">Loading…</div>}>
+            <RolesTab />
+          </Suspense>
+        </section>
+      )}
+    </section>
   );
 }

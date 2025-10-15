@@ -9,7 +9,7 @@ function StatusBadge({ status }) {
   return <span className={`badge ${map[status] || ""}`}>{status}</span>;
 }
 
-export default function IntegrationsTable({
+function IntegrationsTableCmp({
   loading,
   items,
   page,
@@ -27,13 +27,14 @@ export default function IntegrationsTable({
     <div className="card">
       <div className="hidden sm:block overflow-x-auto">
         <table className="min-w-full text-sm">
+          <caption className="sr-only">Configured integrations</caption>
           <thead className="text-left">
             <tr className="text-muted">
-              <th className="px-4 py-3 font-medium">Provider</th>
-              <th className="px-4 py-3 font-medium">Name</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Last Sync</th>
-              <th className="px-4 py-3 font-medium text-right">Actions</th>
+              <th scope="col" className="px-4 py-3 font-medium">Provider</th>
+              <th scope="col" className="px-4 py-3 font-medium">Name</th>
+              <th scope="col" className="px-4 py-3 font-medium">Status</th>
+              <th scope="col" className="px-4 py-3 font-medium">Last Sync</th>
+              <th scope="col" className="px-4 py-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -56,11 +57,12 @@ export default function IntegrationsTable({
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex gap-2">
-                      <button className="btn-ghost" onClick={() => onEdit(it)}>
+                      <button className="btn-ghost" aria-label={`Edit integration ${it.name || it.provider}`} onClick={() => onEdit(it)}>
                         Edit
                       </button>
                       <button
                         className="btn-ghost"
+                        aria-label={`Delete integration ${it.name || it.provider}`}
                         onClick={() => onDelete(it)}
                       >
                         Delete
@@ -81,10 +83,10 @@ export default function IntegrationsTable({
       </div>
 
       {/* Mobile list */}
-      <div className="sm:hidden">
+      <div className="sm:hidden" role="list" aria-label="Configured integrations">
         {loading &&
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="animate-pulse p-3 border-b border-border/40">
+            <div role="listitem" key={i} className="animate-pulse p-3 border-b border-border/40">
               <div className="h-4 bg-white/10 rounded w-2/3 mb-2" />
               <div className="h-3 bg-white/10 rounded w-1/2" />
             </div>
@@ -92,7 +94,7 @@ export default function IntegrationsTable({
 
         {!loading &&
           items.map((it) => (
-            <div key={it._id} className="p-3 border-b border-border/40">
+            <div role="listitem" key={it._id} className="p-3 border-b border-border/40">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="font-medium truncate capitalize">{it.provider}</div>
@@ -105,8 +107,8 @@ export default function IntegrationsTable({
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 shrink-0">
-                  <button className="btn-ghost" onClick={() => onEdit(it)}>Edit</button>
-                  <button className="btn-ghost" onClick={() => onDelete(it)}>Delete</button>
+                  <button className="btn-ghost" aria-label={`Edit integration ${it.name || it.provider}`} onClick={() => onEdit(it)}>Edit</button>
+                  <button className="btn-ghost" aria-label={`Delete integration ${it.name || it.provider}`} onClick={() => onDelete(it)}>Delete</button>
                 </div>
               </div>
             </div>
@@ -126,10 +128,10 @@ export default function IntegrationsTable({
           — {total} total
         </div>
         <div className="flex gap-2">
-          <button className="btn-ghost" disabled={!hasPrev} onClick={onPrev}>
+          <button className="btn-ghost" aria-label="Previous page" disabled={!hasPrev} onClick={onPrev}>
             Prev
           </button>
-          <button className="btn-ghost" disabled={!hasNext} onClick={onNext}>
+          <button className="btn-ghost" aria-label="Next page" disabled={!hasNext} onClick={onNext}>
             Next
           </button>
         </div>
@@ -137,3 +139,5 @@ export default function IntegrationsTable({
     </div>
   );
 }
+
+export default React.memo(IntegrationsTableCmp);

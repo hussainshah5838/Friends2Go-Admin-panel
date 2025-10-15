@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const PERM_KEYS = [
   ["usersRead", "Users: read"],
@@ -28,6 +28,8 @@ export default function RoleDrawer({
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const asideRef = useRef(null);
 
   useEffect(() => {
     setM({
@@ -72,36 +74,54 @@ export default function RoleDrawer({
     setM((cur) => ({ ...cur, perms: { ...cur.perms, [k]: !cur.perms[k] } }));
   }
 
+  useEffect(() => {
+    if (open && asideRef.current) asideRef.current.focus();
+  }, [open]);
+
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <aside className="absolute right-0 top-0 h-full w-full sm:w-[28rem] md:w-[32rem] lg:w-[36rem] max-w-full glass p-5 overflow-y-auto rounded-none sm:rounded-l-2xl">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <aside
+        ref={asideRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="role-drawer-title"
+        className="absolute right-0 top-0 h-full w-full sm:w-[28rem] md:w-[32rem] lg:w-[36rem] max-w-full glass p-5 overflow-y-auto rounded-none sm:rounded-l-2xl"
+      >
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">
+          <h3 id="role-drawer-title" className="text-lg font-semibold">
             {isEdit ? "Edit Role" : "Create Role"}
           </h3>
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="btn-ghost" onClick={onClose} aria-label="Close dialog">
             Close
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <label className="block">
+          <label className="block" htmlFor="roleName">
             <span className="text-sm text-muted">Role name</span>
             <input
+              id="roleName"
+              name="name"
               className="input mt-1"
               value={m.name}
               onChange={(e) => setM({ ...m, name: e.target.value })}
               placeholder="admin / moderator / custom"
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? "role-name-error" : undefined}
+              autoFocus
             />
             {errors.name && (
-              <div className="text-danger text-xs mt-1">{errors.name}</div>
+              <div id="role-name-error" className="text-danger text-xs mt-1">{errors.name}</div>
             )}
           </label>
 
-          <label className="block">
+          <label className="block" htmlFor="roleDesc">
             <span className="text-sm text-muted">Description</span>
             <textarea
+              id="roleDesc"
+              name="description"
               className="input mt-1 min-h-[96px]"
               value={m.description}
               onChange={(e) => setM({ ...m, description: e.target.value })}
@@ -109,7 +129,8 @@ export default function RoleDrawer({
             />
           </label>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <fieldset className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <legend className="sr-only">Permissions</legend>
             {PERM_KEYS.map(([k, label]) => (
               <label key={k} className="flex items-center gap-2">
                 <input
@@ -120,13 +141,13 @@ export default function RoleDrawer({
                 <span className="text-sm">{label}</span>
               </label>
             ))}
-          </div>
+          </fieldset>
 
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" className="btn-ghost" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn" disabled={saving}>
+            <button type="submit" className="btn" disabled={saving} aria-disabled={saving ? "true" : "false"}>
               {saving ? "Saving…" : isEdit ? "Save changes" : "Create role"}
             </button>
           </div>

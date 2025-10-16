@@ -44,9 +44,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           <div className="flex items-center gap-2">
             <img
               src={Logo}
-              alt="Logo"
-              className="h-8 w-8 rounded-lg object-cover"
+              alt="Company Logo"
+              className="h-10 w-auto object-contain rounded-lg md:h-12 lg:h-14 transition-all duration-300"
             />
+
             <span className="font-semibold">Admin</span>
           </div>
           <button

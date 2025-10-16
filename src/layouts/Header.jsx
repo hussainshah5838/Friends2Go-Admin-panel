@@ -91,11 +91,12 @@ export default function Header({
           {/* Compact logo on mobile */}
           <img
             src={logoSrc}
-            alt="Logo"
-            className="h-7 w-7 rounded-lg sm:hidden"
+            alt="Company Logo"
+            className="h-10 w-auto object-contain rounded-lg sm:h-8 md:h-10 lg:h-12"
           />
+
           <div className="hidden sm:flex items-center gap-2">
-            <img src={logoSrc} alt="Logo" className="h-7 w-7 rounded-lg" />
+            {/* <img src={logoSrc} alt="Logo" className="h-7 w-7 rounded-lg" /> */}
             <div className="text-sm text-muted">Welcome back,</div>
             <div className="text-sm font-semibold">{title}</div>
           </div>

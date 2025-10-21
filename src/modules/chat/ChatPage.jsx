@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Toaster } from "react-hot-toast";
 import {
   listenToChats,
   listenToMessages,
@@ -33,7 +32,6 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col sm:flex-row h-[calc(100vh-4rem)]">
-      <Toaster position="bottom-right" toastOptions={{ duration: 3000 }} />
       {/* Sidebar */}
       <div className="w-full sm:w-1/3 lg:w-1/4 border-r border-border/40 overflow-y-auto">
         <ChatList

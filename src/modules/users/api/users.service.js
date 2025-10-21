@@ -1,251 +1,202 @@
-// In-memory + localStorage mock API for Users
-// Shapes align with UsersList/UserTable/UserDrawer expectations
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  getDoc,
+  query,
+  orderBy,
+  where,
+  serverTimestamp,
+  getCountFromServer,
+} from "firebase/firestore";
+import { db, storage } from "../../../lib/firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
-const LS_KEY = "ballie_admin_users";
+const usersCol = collection(db, "user");
 
-function uid() {
-  return (
-    Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
-  ).toUpperCase();
+// --- helper: strip undefined (Firestore can't accept undefined) ---
+const stripUndefined = (obj) =>
+  Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
+
+function parseUser(d) {
+  return {
+    _id: d.id,
+    fullName: d.fullName || "",
+    email: d.email || "",
+    role: d.role || "fan",
+    // Preserve backend truth; don't default to "active" so filters match correctly
+    status: typeof d.status === "string" ? d.status : "",
+    premium: !!d.premium,
+    language: d.language || "en",
+    bio: d.bio || "",
+    profileImage: d.profileImage || "",
+    fcmToken: d.fcmToken || "",
+    authType: d.authType || "email",         
+    createdAt:
+      typeof d.createdAt?.toDate === "function"
+        ? d.createdAt.toDate()
+        : d.createdAt instanceof Date
+        ? d.createdAt
+        : null,
+  };
 }
-
-function seed() {
-  const base = [
-    {
-      _id: "U001",
-      name: "Alice Johnson",
-      email: "alice.johnson@example.com",
-      role: "admin",
-      status: "active",
-      premium: true,
-      language: "en",
-      notes: "Team lead",
-      createdAt: "2024-01-12T10:20:00Z",
-    },
-    {
-      _id: "U002",
-      name: "Brian Chen",
-      email: "brian.chen@example.com",
-      role: "business",
-      status: "active",
-      premium: false,
-      language: "en",
-      notes: "",
-      createdAt: "2024-02-03T09:10:00Z",
-    },
-    {
-      _id: "U003",
-      name: "Carla Mendes",
-      email: "carla.mendes@example.com",
-      role: "fan",
-      status: "suspended",
-      premium: false,
-      language: "pt",
-      notes: "Chargeback in May",
-      createdAt: "2024-02-17T14:00:00Z",
-    },
-    {
-      _id: "U004",
-      name: "Diego Martínez",
-      email: "diego.martinez@example.com",
-      role: "fan",
-      status: "active",
-      premium: true,
-      language: "es",
-      notes: "VIP",
-      createdAt: "2024-03-29T16:45:00Z",
-    },
-    {
-      _id: "U005",
-      name: "Elena Petrova",
-      email: "elena.petrova@example.com",
-      role: "business",
-      status: "active",
-      premium: true,
-      language: "ru",
-      notes: "",
-      createdAt: "2024-04-08T08:30:00Z",
-    },
-    {
-      _id: "U006",
-      name: "Farhan Ali",
-      email: "farhan.ali@example.com",
-      role: "fan",
-      status: "active",
-      premium: false,
-      language: "ur",
-      notes: "",
-      createdAt: "2024-04-21T12:05:00Z",
-    },
-    {
-      _id: "U007",
-      name: "Grace Lee",
-      email: "grace.lee@example.com",
-      role: "admin",
-      status: "active",
-      premium: true,
-      language: "en",
-      notes: "Security champion",
-      createdAt: "2024-05-10T10:00:00Z",
-    },
-    {
-      _id: "U008",
-      name: "Hiro Tanaka",
-      email: "hiro.tanaka@example.com",
-      role: "business",
-      status: "active",
-      premium: false,
-      language: "ja",
-      notes: "",
-      createdAt: "2024-06-01T09:10:00Z",
-    },
-    {
-      _id: "U009",
-      name: "Isabella Rossi",
-      email: "isabella.rossi@example.com",
-      role: "fan",
-      status: "active",
-      premium: true,
-      language: "it",
-      notes: "",
-      createdAt: "2024-07-15T11:20:00Z",
-    },
-    {
-      _id: "U010",
-      name: "Jamal Brown",
-      email: "jamal.brown@example.com",
-      role: "fan",
-      status: "suspended",
-      premium: false,
-      language: "en",
-      notes: "",
-      createdAt: "2024-08-04T15:40:00Z",
-    },
-    {
-      _id: "U011",
-      name: "Klara Novak",
-      email: "klara.novak@example.com",
-      role: "business",
-      status: "active",
-      premium: false,
-      language: "cs",
-      notes: "",
-      createdAt: "2024-08-22T10:10:00Z",
-    },
-    {
-      _id: "U012",
-      name: "Liam O'Connor",
-      email: "liam.oconnor@example.com",
-      role: "moderator", // kept for variety; normalized later to business
-      status: "active",
-      premium: true,
-      language: "en",
-      notes: "",
-      createdAt: "2024-09-10T13:15:00Z",
-    },
-  ];
-  // Normalize any non-conforming roles to supported set
-  return base.map((u) => ({
-    ...u,
-    role: ["fan", "business", "admin"].includes(u.role) ? u.role : "business",
-  }));
-}
-
-function load() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return seed();
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return seed();
-    return parsed;
-  } catch {
-    return seed();
-  }
-}
-
-function save(rows) {
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify(rows));
-  } catch {
-    // ignore
-  }
-}
-
-let db = load();
 
 export async function listUsers(params = {}) {
-  const { page = 1, limit = 10, q = "", role = "", status = "" } = params;
-  let rows = [...db];
+  const { q = "", role = "", status = "" } = params;
 
-  // Filter by search
-  const query = String(q).trim().toLowerCase();
-  if (query) {
-    rows = rows.filter(
+  // Normalize status for case-insensitive matching (handles "Active" vs "active")
+  const normalizeStatusVariants = (s) => {
+    if (!s) return [];
+    const lower = String(s).toLowerCase();
+    const cap = lower.charAt(0).toUpperCase() + lower.slice(1);
+    const set = new Set([lower, cap, s]);
+    return Array.from(set);
+  };
+
+  const constraints = [];
+  if (role) constraints.push(where("role", "==", role));
+  if (status) {
+    const variants = normalizeStatusVariants(status);
+    // Support boolean storage for status as well (true ~ active, false ~ suspended)
+    if (status.toLowerCase() === "active") variants.push(true);
+    if (status.toLowerCase() === "suspended") variants.push(false);
+    const unique = Array.from(new Set(variants));
+    if (unique.length > 1) constraints.push(where("status", "in", unique));
+    else constraints.push(where("status", "==", unique[0]));
+  }
+
+  // Build query for docs
+  let snap;
+  try {
+    const preferOrder = constraints.length === 0;
+    const qRef = preferOrder
+      ? query(usersCol, orderBy("createdAt", "desc"))
+      : query(usersCol, ...constraints);
+    snap = await getDocs(qRef);
+  } catch (_) {
+    // Fallback without order when index is missing
+    const qRefNoOrder = query(usersCol, ...constraints);
+    snap = await getDocs(qRefNoOrder);
+  }
+
+  // Compute total from backend using aggregation (best-effort)
+  let totalFromServer = undefined;
+  try {
+    const countRef = constraints.length ? query(usersCol, ...constraints) : query(usersCol);
+    const agg = await getCountFromServer(countRef);
+    totalFromServer = agg.data().count;
+  } catch (_) {
+    // ignore; we'll fall back to client count
+  }
+
+  let users = snap.docs.map((docSnap) => parseUser({ id: docSnap.id, ...docSnap.data() }));
+
+  // Client-side text search
+  const queryStr = q.trim().toLowerCase();
+  if (queryStr) {
+    users = users.filter(
       (u) =>
-        u.name.toLowerCase().includes(query) ||
-        u.email.toLowerCase().includes(query)
+        u.fullName.toLowerCase().includes(queryStr) ||
+        u.email.toLowerCase().includes(queryStr)
     );
   }
-  // Filter by role/status
-  if (role) rows = rows.filter((u) => u.role === role);
-  if (status) rows = rows.filter((u) => u.status === status);
 
-  // Sort by created desc
-  rows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  // Deterministic sort by createdAt desc
+  users.sort((a, b) => {
+    const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return tb - ta;
+  });
 
-  const total = rows.length;
-  const start = Math.max(0, (page - 1) * limit);
-  const items = rows.slice(start, start + limit);
-  return { items, total };
+  return { items: users, total: totalFromServer ?? users.length };
 }
 
 export async function createUser(model) {
-  const now = new Date().toISOString();
-  const doc = {
-    _id: uid(),
-    name: model.name?.trim() || "Unnamed",
-    email: model.email?.trim() || "",
-    role: model.role || "fan",
-    status: model.status || "active",
+  const payload = stripUndefined({
+    fullName: model.fullName,
+    email: model.email,
+    role: model.role,
+    status: model.status,
     premium: !!model.premium,
     language: model.language || "en",
     notes: model.notes || "",
-    createdAt: now,
-  };
-  db.unshift(doc);
-  save(db);
-  return doc;
+    bio: model.bio || "",
+    fcmToken: model.fcmToken || "",
+    profileImage: model.profileImage || "",
+    authType: model.authType || "email",
+    createdAt: serverTimestamp(),             // ✅ server time
+  });
+  const docRef = await addDoc(usersCol, payload);
+  const snap = await getDoc(docRef);
+  return parseUser({ id: snap.id, ...snap.data() });
 }
 
 export async function updateUser(id, model) {
-  const idx = db.findIndex((u) => u._id === id);
-  if (idx === -1) throw new Error("User not found");
-  db[idx] = {
-    ...db[idx],
-    ...model,
-  };
-  save(db);
-  return db[idx];
+  const docRef = doc(db, "user", id);
+
+  // ❗ send only defined fields; don’t overwrite createdAt
+  const { createdAt, _id, ...rest } = model || {};
+  const payload = stripUndefined(rest);
+
+  await updateDoc(docRef, payload);
+  return { ok: true };
 }
 
 export async function deleteUser(id) {
-  const before = db.length;
-  db = db.filter((u) => u._id !== id);
-  if (db.length === before) throw new Error("User not found");
-  save(db);
+  await deleteDoc(doc(db, "user", id));
   return { ok: true };
 }
 
 export async function getUserById(id) {
-  return db.find((u) => u._id === id) || null;
+  const snap = await getDoc(doc(db, "user", id));
+  if (!snap.exists()) return null;
+  return parseUser({ id: snap.id, ...snap.data() });
+}
+
+export async function uploadUserProfileImage(file, userId) {
+  if (!file) throw new Error("No file");
+  const safeName = `${Date.now()}-${(file.name || "image").replace(/[^a-zA-Z0-9_.-]/g, "_")}`;
+  const path = userId ? `profile-images/${userId}/${safeName}` : `profile-images/${safeName}`;
+  const fileRef = ref(storage, path);
+
+  const task = uploadBytesResumable(fileRef, file, {
+    contentType: file.type || "application/octet-stream",
+  });
+
+  await new Promise((resolve, reject) => {
+    task.on(
+      "state_changed",
+      null,
+      (err) => {
+        console.error("Storage error:", err.code, err.message);
+        reject(err);
+      },
+      resolve
+    );
+  });
+
+  return await getDownloadURL(task.snapshot.ref);
+}
+
+// Dev smoke test helper to validate Storage setup quickly
+export async function testUploadStorage() {
+  const blob = new Blob(["hello"], { type: "text/plain" });
+  const file = new File([blob], "ping.txt", { type: "text/plain" });
+  const url = await uploadUserProfileImage(file);
+  // eslint-disable-next-line no-console
+  console.log("Upload OK, URL:", url);
+  return url;
+}
+
+if (typeof window !== "undefined" && import.meta?.env?.DEV) {
+  // @ts-ignore: exposed for manual testing in dev console
+  window.testUploadStorage = testUploadStorage;
 }
 
 const UsersService = {
-  listUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-  getUserById,
+  listUsers, createUser, updateUser, deleteUser, getUserById, uploadUserProfileImage
 };
-
 export default UsersService;

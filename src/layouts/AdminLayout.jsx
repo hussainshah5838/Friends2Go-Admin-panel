@@ -1,10 +1,43 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
 export default function AdminLayout() {
   const [open, setOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("ballie_user") || "{}");
+    } catch (_) {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    const readUser = () => {
+      try {
+        const data = JSON.parse(localStorage.getItem("ballie_user") || "{}");
+        setUserInfo(data || {});
+      } catch (_) {
+        // ignore
+      }
+    };
+
+    const onStorage = (e) => {
+      if (!e || e.key === null || e.key === "ballie_user") readUser();
+    };
+    const onUserUpdated = (e) => {
+      if (e?.detail?.user) setUserInfo(e.detail.user);
+      else readUser();
+    };
+
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("ballie:user-updated", onUserUpdated);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("ballie:user-updated", onUserUpdated);
+    };
+  }, []);
 
   return (
     <div
@@ -17,8 +50,8 @@ export default function AdminLayout() {
       {/* Main */}
       <main className="p-3 sm:p-4 lg:p-6">
         <Header
-          title="Admin"
-          avatarSrc="https://randomuser.me/api/portraits/men/75.jpg"
+          title={userInfo?.displayName || "Admin"}
+          avatarSrc={userInfo?.photoURL || undefined}
           notifications={3}
           onMenuClick={() => setOpen(true)}
         />

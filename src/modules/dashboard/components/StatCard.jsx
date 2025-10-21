@@ -1,33 +1,19 @@
 import React from "react";
-import Sparkline from "./Sparkline";
 
-export default function StatCard({
-  label,
-  value,
-  delta = 0,
-  trend = [],
-  icon = null,
-}) {
-  const up = delta >= 0;
+export default function StatCard({ icon: Icon, label, value, color, loading }) {
   return (
-    <div className="card p-4 flex items-center gap-4">
-      <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-        {icon}
+    <div
+      className="rounded-2xl border border-border/40 bg-white/[0.03] p-5 flex flex-col items-center 
+                 hover:bg-white/[0.06] transition-all shadow-md backdrop-blur-md group"
+    >
+      <div
+        className={`p-3 rounded-xl bg-${color}-500/10 text-${color}-400 group-hover:scale-110 transition`}
+      >
+        <Icon className="text-2xl" />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-xs text-muted">{label}</div>
-        <div className="text-lg font-semibold">
-          {Intl.NumberFormat().format(value)}
-        </div>
-        <div className="text-[10px] mt-0.5">
-          <span className={up ? "text-success" : "text-danger"}>
-            {up ? "▲" : "▼"} {Math.abs(delta)}%
-          </span>{" "}
-          vs last period
-        </div>
-      </div>
-      <div className="w-28 text-primary/80">
-        <Sparkline data={trend} />
+      <div className="mt-3 text-sm text-muted">{label}</div>
+      <div className="text-3xl font-semibold mt-1">
+        {loading ? "…" : value.toLocaleString()}
       </div>
     </div>
   );

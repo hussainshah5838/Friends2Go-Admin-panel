@@ -31,7 +31,7 @@ export default function UserDetail() {
   return (
     <section className="grid gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">{user.name}</h1>
+        <h1 className="text-lg font-semibold">{user.fullName}</h1>
         <Link to={PATHS.USERS} className="btn-ghost">Back</Link>
       </div>
 
@@ -58,4 +58,3 @@ export default function UserDetail() {
     </section>
   );
 }
-

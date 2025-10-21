@@ -88,11 +88,10 @@ export default function Header({
           >
             <MdMenu className="h-5 w-5 text-muted" />
           </button>
-          {/* Compact logo on mobile */}
-          <img
-            src={logoSrc}
-            alt="Company Logo"
-            className="h-10 w-auto object-contain rounded-lg sm:h-8 md:h-10 lg:h-12"
+          {/* Reserved space where logo used to be */}
+          <div
+            aria-hidden="true"
+            className="h-10 w-10 rounded-lg sm:h-8 md:h-10 lg:h-12"
           />
 
           <div className="hidden sm:flex items-center gap-2">
@@ -137,7 +136,7 @@ export default function Header({
             <MdSearch className="h-5 w-5 text-muted" />
           </button>
           <div className="relative" ref={notifWrapRef}>
-            <button
+            {/* <button
               type="button"
               onClick={toggleNotifications}
               className="relative p-2.5 rounded-full hover:bg-primary/10"
@@ -193,7 +192,7 @@ export default function Header({
                   </button>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           <button

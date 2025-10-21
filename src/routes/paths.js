@@ -3,8 +3,7 @@ export const PATHS = {
   AUTH_LOGIN: "/auth/login",
   USERS: "/users",
   USER_DETAIL: "/users/:id",
-  SUBSCRIBERS: "/subscribers",
-  SHOP: "/shop",
-  BLOG: "/blog",
+  PLANS: "/plans",
+  CHAT: "/chat",
   SETTINGS: "/settings",
 };

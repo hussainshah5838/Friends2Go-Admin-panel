@@ -1,68 +1,121 @@
-// Toggle mock via VITE_USE_MOCK=1; or auto‑mock when no VITE_API_URL is set
-import axios from "axios";
+import {
+  auth,
+  googleProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  sendPasswordResetEmail,
+} from "../../../lib/firebase";
 
-const ENV = import.meta?.env || {};
-const USE_MOCK = ENV.VITE_USE_MOCK === "1" || !ENV.VITE_API_URL;
-const api = axios.create({
-  baseURL: ENV.VITE_API_URL || "/api",
-  withCredentials: true,
-});
-
-function persistSession({ token, user }) {
-  // adapt to your RequireAuth guard (uses localStorage in your app)
-  localStorage.setItem("ballie_token", token);
-  localStorage.setItem("ballie_user", JSON.stringify(user || {}));
-}
-
-const MOCK_USER = {
-  id: "u_admin",
-  name: "Admin Jess",
-  email: "admin@ballie.app",
-  role: "admin",
-  avatar: "https://i.pravatar.cc/160?img=12",
-};
-
+// 🔹 Login with Email & Password
 export async function loginWithEmail(email, password) {
-  if (USE_MOCK) {
-    await new Promise((r) => setTimeout(r, 600));
-    // naive mock check
-    const ok = !!email && !!password && password.length >= 3;
-    if (!ok) throw new Error("Invalid email or password");
-    const token = "mock_token_" + Math.random().toString(36).slice(2);
-    persistSession({ token, user: { ...MOCK_USER, email } });
-    return { token, user: { ...MOCK_USER, email } };
+  const userCredential = await signInWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
+  const user = userCredential.user;
+  // Store token & user info
+  const token = await user.getIdToken();
+  localStorage.setItem("ballie_token", token);
+  localStorage.setItem(
+    "ballie_user",
+    JSON.stringify({
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+    })
+  );
+  try {
+    window.dispatchEvent(
+      new CustomEvent("ballie:user-updated", {
+        detail: {
+          user: {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+          },
+        },
+      })
+    );
+  } catch (e) {
+    // ignore if not in browser
   }
-  const res = await api.post("/auth/login", { email, password });
-  persistSession(res.data);
-  return res.data;
+  return user;
 }
 
+// 🔹 Login with Google OAuth
 export async function loginWithOAuth(provider) {
-  if (USE_MOCK) {
-    await new Promise((r) => setTimeout(r, 600));
-    const token =
-      "mock_oauth_" + provider + "_" + Math.random().toString(36).slice(2);
-    persistSession({ token, user: MOCK_USER });
-    return { token, user: MOCK_USER };
+  if (provider !== "google") throw new Error("Unsupported provider");
+
+  const result = await signInWithPopup(auth, googleProvider);
+  const user = result.user;
+  const token = await user.getIdToken();
+
+  localStorage.setItem("ballie_token", token);
+  localStorage.setItem(
+    "ballie_user",
+    JSON.stringify({
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+    })
+  );
+  try {
+    window.dispatchEvent(
+      new CustomEvent("ballie:user-updated", {
+        detail: {
+          user: {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+          },
+        },
+      })
+    );
+  } catch (e) {
+    // ignore if not in browser
   }
-  // usually you’ll redirect to provider or open a popup; here we assume a POST returns token
-  const res = await api.post(`/auth/oauth/${provider}`);
-  persistSession(res.data);
-  return res.data;
+  return user;
 }
 
+// 🔹 Send password reset link
 export async function requestPasswordReset(email) {
-  if (USE_MOCK) {
-    await new Promise((r) => setTimeout(r, 600));
-    return { ok: true };
-  }
-  const res = await api.post("/auth/forgot", { email });
-  return res.data;
-}
+  const target = String(email || "").trim();
+  if (!target) throw new Error("Enter an email address");
 
-export function logout() {
-  localStorage.removeItem("ballie_token");
-  localStorage.removeItem("ballie_user");
-  sessionStorage.clear();
-  return { ok: true };
+  try {
+    // Optional: set email template language from browser
+    try {
+      auth.languageCode = navigator?.language || "en";
+    } catch (_) {}
+
+    const origin = typeof window !== "undefined" ? window.location.origin : undefined;
+    const envUrl = import.meta?.env?.VITE_PUBLIC_RESET_REDIRECT;
+    const continueUrl = envUrl || origin;
+
+    if (continueUrl) {
+      // Try with actionCodeSettings for better UX
+      await sendPasswordResetEmail(auth, target, {
+        url: continueUrl,
+        handleCodeInApp: true,
+      });
+      return true;
+    }
+  } catch (e) {
+    // If provided continue URL is not authorized or invalid, retry without it
+    const code = e?.code || "";
+    const shouldRetry =
+      code === "auth/invalid-continue-uri" ||
+      code === "auth/unauthorized-continue-uri" ||
+      code === "auth/argument-error";
+    if (!shouldRetry) throw e;
+  }
+
+  // Fallback: basic reset (uses Firebase console default)
+  await sendPasswordResetEmail(auth, target);
+  return true;
 }

@@ -1,19 +1,17 @@
 import React, { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
+import ProtectedRoute from "./ProtectedRoute.jsx";
 import { PATHS } from "./paths";
 
 // Lazy page stubs (replace with your real pages)
 const Dashboard = lazy(() => import("../modules/dashboard/Dashboard.jsx"));
 const UsersList = lazy(() => import("../modules/users/UsersList.jsx"));
 const UserDetail = lazy(() => import("../modules/users/UserDetail.jsx"));
-const SubscribersList = lazy(() =>
-  import("../modules/subscribers/SubscribersList.jsx")
-);
-const ShopData = lazy(() => import("../modules/shop/ShopData.jsx"));
-const BlogData = lazy(() => import("../modules/blog/BlogData.jsx"));
-const Settings = lazy(() => import("../modules/settings/Settings.jsx"));
+const PlansList = lazy(() => import("../modules/plans/PlansList.jsx"));
+const SettingsPage = lazy(() => import("../modules/settings/SettingsPage.jsx"));
 const Login = lazy(() => import("../modules/auth/Login.jsx"));
+const ChatPage = lazy(() => import("/src/modules/chat/ChatPage.jsx"));
 
 const Loading = () => <div className="card p-8 text-muted">Loading…</div>;
 
@@ -28,7 +26,11 @@ const router = createBrowserRouter([
   },
   {
     path: PATHS.ROOT,
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -58,28 +60,18 @@ const router = createBrowserRouter([
       },
 
       {
-        path: PATHS.SUBSCRIBERS.slice(1),
+        path: PATHS.PLANS.slice(1),
         element: (
           <Suspense fallback={<Loading />}>
-            <SubscribersList />
+            <PlansList />
           </Suspense>
         ),
       },
-
       {
-        path: PATHS.SHOP.slice(1),
+        path: PATHS.CHAT.slice(1),
         element: (
           <Suspense fallback={<Loading />}>
-            <ShopData />
-          </Suspense>
-        ),
-      },
-
-      {
-        path: PATHS.BLOG.slice(1),
-        element: (
-          <Suspense fallback={<Loading />}>
-            <BlogData />
+            <ChatPage />
           </Suspense>
         ),
       },
@@ -88,7 +80,7 @@ const router = createBrowserRouter([
         path: PATHS.SETTINGS.slice(1),
         element: (
           <Suspense fallback={<Loading />}>
-            <Settings />
+            <SettingsPage />
           </Suspense>
         ),
       },

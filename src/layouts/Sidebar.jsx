@@ -2,21 +2,18 @@ import React from "react";
 import {
   MdDashboard,
   MdPeople,
-  MdRssFeed,
+  MdEventNote,
+  MdChat,
   MdSettings,
-  MdStorefront,
-  MdSubscriptions,
   MdLogout,
 } from "react-icons/md";
-import { Logo } from "../assets";
 import { NavLink } from "react-router-dom";
 
 const NAV = [
   { icon: MdDashboard, label: "Dashboard", path: "/" },
   { icon: MdPeople, label: "Users", path: "/users" },
-  { icon: MdSubscriptions, label: "Subscribers", path: "/subscribers" },
-  { icon: MdStorefront, label: "Shop Data", path: "/shop" },
-  { icon: MdRssFeed, label: "Blog Data", path: "/blog" },
+  { icon: MdEventNote, label: "Plan", path: "/plans" },
+  { icon: MdChat, label: "Chat", path: "/chat" },
   { icon: MdSettings, label: "Settings", path: "/settings" },
 ];
 
@@ -42,12 +39,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       >
         <div className="h-16 px-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img
-              src={Logo}
-              alt="Company Logo"
-              className="h-10 w-auto object-contain rounded-lg md:h-12 lg:h-14 transition-all duration-300"
-            />
-
+            {/* Reserved space where logo used to be */}
+            <div aria-hidden="true" className="h-10 w-10 rounded-lg md:h-12 lg:h-14" />
             <span className="font-semibold">Admin</span>
           </div>
           <button

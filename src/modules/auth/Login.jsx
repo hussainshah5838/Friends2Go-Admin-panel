@@ -1,15 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import {
-  loginWithEmail,
-  loginWithOAuth,
-  requestPasswordReset,
-} from "./api/auth.service";
+import { useNavigate } from "react-router-dom";
+import { loginWithEmail, requestPasswordReset } from "./api/auth.service";
 import AuthBackground from "./components/AuthBackground";
 import { MdVisibility, MdVisibilityOff, MdMail, MdLock } from "react-icons/md";
-import { FcGoogle } from "react-icons/fc";
-import { FaApple } from "react-icons/fa";
-import { Logo } from "../../assets";
+// Logo removed from the login header; keep spacing only
+import { toast } from "react-hot-toast";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -22,6 +17,11 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
+
+  // reset modal state
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -41,43 +41,55 @@ export default function Login() {
         sessionStorage.setItem("ballie_token", t || "");
         sessionStorage.setItem("ballie_user", u || "{}");
       }
+      toast.success("Signed in");
       navigate("/");
     } catch (e2) {
-      setErr(e2?.message || "Unable to sign in");
+      const message = e2?.message || "Unable to sign in";
+      setErr(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   }
 
-  async function onForgot() {
+  // Open reset modal or prefill it if email exists
+  function openReset() {
+    setResetEmail(email || "");
     setErr("");
     setInfo("");
-    if (!email) {
-      setErr("Enter your email first to receive a reset link.");
+    setResetOpen(true);
+  }
+
+  async function handleResetSend(e) {
+    e?.preventDefault?.();
+    const targetEmail = (resetEmail || "").trim();
+    if (!targetEmail) {
+      toast.error("Enter an email address");
       return;
     }
-    setLoading(true);
-    try {
-      await requestPasswordReset(email);
-      setInfo("If an account exists, a reset link has been sent.");
-    } catch {
-      setErr("Could not send reset link right now.");
-    } finally {
-      setLoading(false);
+    // Basic email format check to reduce typos
+    const emailOk = /.+@.+\..+/.test(targetEmail);
+    if (!emailOk) {
+      toast.error("Enter a valid email address");
+      return;
     }
-  }
 
-  async function oauth(provider) {
-    setErr("");
-    setInfo("");
-    setLoading(true);
+    setResetLoading(true);
+    const loadingToast = toast.loading("Sending reset link...");
     try {
-      await loginWithOAuth(provider);
-      navigate("/");
-    } catch {
-      setErr("OAuth sign-in failed.");
+      await requestPasswordReset(targetEmail);
+      const msg = `If an account exists for ${targetEmail}, a reset link has been sent.`;
+      toast.success(msg);
+      setResetOpen(false);
+      setInfo(msg);
+    } catch (err) {
+      console.error(err);
+      const msg = err?.message || "Could not send reset link right now.";
+      toast.error(msg);
+      setErr(msg);
     } finally {
-      setLoading(false);
+      setResetLoading(false);
+      toast.dismiss(loadingToast);
     }
   }
 
@@ -106,49 +118,17 @@ export default function Login() {
           />
           <div className="glass rounded-3xl border border-border/60 shadow-2xl backdrop-blur-xl">
             <div className="p-7 sm:p-8">
-              {/* Brand */}
+              {/* Brand (logo removed; keep spacing) */}
               <div className="flex items-center gap-3 mb-6">
-                <img
-                  src={Logo}
-                  alt="Ballie"
-                  className="h-8 w-8 rounded-md bg-white"
-                />
+                <div aria-hidden="true" className="h-8 w-8 rounded-md" />
                 <div>
                   <div className="text-lg font-semibold leading-none">
-                    Ballie Admin
+                    Admin Login
                   </div>
                   <div className="text-[11px] text-muted">
                     Sign in to continue
                   </div>
                 </div>
-              </div>
-
-              {/* OAuth */}
-              <div className="grid grid-cols-2 gap-2 mb-5">
-                <button
-                  type="button"
-                  className="btn-ghost h-11 flex items-center justify-center gap-2"
-                  onClick={() => oauth("google")}
-                  disabled={loading}
-                >
-                  <FcGoogle size={18} />
-                  <span>Google</span>
-                </button>
-                <button
-                  type="button"
-                  className="btn-ghost h-11 flex items-center justify-center gap-2"
-                  onClick={() => oauth("apple")}
-                  disabled={loading}
-                >
-                  <FaApple size={18} />
-                  <span>Apple</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-3 my-4">
-                <div className="h-px flex-1 bg-border/60" />
-                <span className="text-[11px] text-muted">or use email</span>
-                <div className="h-px flex-1 bg-border/60" />
               </div>
 
               {/* Form */}
@@ -174,7 +154,7 @@ export default function Login() {
                     <button
                       type="button"
                       className="text-[11px] text-primary hover:underline"
-                      onClick={onForgot}
+                      onClick={openReset}
                       disabled={loading}
                     >
                       Forgot?
@@ -192,11 +172,19 @@ export default function Login() {
                     />
                     <button
                       type="button"
-                      className="text-muted hover:text-text"
-                      onClick={() => setShowPass((v) => !v)}
+                      className="text-muted hover:text-text p-1"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowPass((v) => !v);
+                      }}
                       aria-label={showPass ? "Hide password" : "Show password"}
                     >
-                      {showPass ? <MdVisibilityOff /> : <MdVisibility />}
+                      {showPass ? (
+                        <MdVisibilityOff aria-hidden="true" />
+                      ) : (
+                        <MdVisibility aria-hidden="true" />
+                      )}
                     </button>
                   </div>
                 </label>
@@ -210,16 +198,6 @@ export default function Login() {
                     />
                     <span className="text-sm">Remember me</span>
                   </label>
-                  <span className="text-[11px] text-muted">
-                    By continuing you agree to our{" "}
-                    <a
-                      className="text-primary hover:underline"
-                      href="#"
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      Terms
-                    </a>
-                  </span>
                 </div>
 
                 {err && (
@@ -245,25 +223,67 @@ export default function Login() {
                   )}
                 </button>
               </form>
-
-              {/* Footer */}
-              <div className="mt-5 text-xs text-muted text-center">
-                Don’t have access?{" "}
-                <Link
-                  to="#"
-                  onClick={(e) => e.preventDefault()}
-                  className="text-primary hover:underline"
-                >
-                  Request an admin invite
-                </Link>
-              </div>
             </div>
           </div>
 
           {/* subtle bottom caption */}
           <div className="text-center mt-6 text-[11px] text-muted">
-            © {new Date().getFullYear()} Ballie — All rights reserved.
+            © {new Date().getFullYear()} — All rights reserved.
           </div>
+        </div>
+      </div>
+
+      {/* Password reset modal */}
+      <div
+        className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200 ${
+          resetOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <div
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-200"
+          onClick={() => setResetOpen(false)}
+        />
+        <div className="relative z-10 w-[92%] max-w-lg bg-[#0b0f14]/90 border border-border/40 rounded-xl p-5 backdrop-blur-md shadow-2xl">
+          <h3 className="text-lg font-semibold mb-2 text-white">
+            Reset password
+          </h3>
+          <p className="text-xs text-muted mb-3">
+            Enter the email to receive a password reset link.
+          </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleResetSend();
+            }}
+            className="space-y-3"
+          >
+            <input
+              type="email"
+              className="input w-full bg-transparent"
+              placeholder="you@ballie.app"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+              autoFocus
+            />
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => setResetOpen(false)}
+                disabled={resetLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleResetSend}
+                className="btn"
+                disabled={resetLoading}
+              >
+                {resetLoading ? "Sending…" : "Send reset link"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

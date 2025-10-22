@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { MdMenu, MdSearch, MdSettings } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import SearchBar from "./components/SearchBar";
-import BrandLogo from "./components/BrandLogo"; 
+import BrandLogo from "./components/BrandLogo";
 
 export default function Header({
   title = "Admin",
@@ -15,6 +15,7 @@ export default function Header({
   onProfileClick,
   onSearch,
   getSearchSuggestions,
+  dims = "",
 }) {
   const [openMobileSearch, setOpenMobileSearch] = useState(false);
   const navigate = useNavigate();
@@ -29,8 +30,18 @@ export default function Header({
     const t = term.trim();
     if (!t) return [];
     return [
-      { id: "users", label: `Users matching "${t}"`, sublabel: "Go to Users", onSelect: () => navigate(`/users?q=${encodeURIComponent(t)}`) },
-      { id: "plans", label: `Plans matching "${t}"`, sublabel: "Go to Plans", onSelect: () => navigate(`/plans?q=${encodeURIComponent(t)}`) },
+      {
+        id: "users",
+        label: `Users matching "${t}"`,
+        sublabel: "Go to Users",
+        onSelect: () => navigate(`/users?q=${encodeURIComponent(t)}`),
+      },
+      {
+        id: "plans",
+        label: `Plans matching "${t}"`,
+        sublabel: "Go to Plans",
+        onSelect: () => navigate(`/plans?q=${encodeURIComponent(t)}`),
+      },
     ];
   }
   const provideSuggestions = getSearchSuggestions || defaultSuggestions;
@@ -72,9 +83,10 @@ export default function Header({
 
           {/* 🔥 Brand (logo + name) */}
           <BrandLogo
-            src={logoSrc}   
+            src={logoSrc}
             name="Admin"
             to="/"
+            className={`${dims} object-contain dark:invert dark:brightness-110`}
             size="md"
           />
 
@@ -91,7 +103,7 @@ export default function Header({
               onSubmit={handleSubmit}
               getSuggestions={provideSuggestions}
               className="w-full max-w-6xl"
-              usePortal={true}    // desktop: portal for perfect layering
+              usePortal={true} // desktop: portal for perfect layering
             />
           </div>
         </div>
@@ -126,7 +138,8 @@ export default function Header({
               alt="User avatar"
               className="h-full w-full object-cover"
               onError={(e) => {
-                if (logoSrc && e.currentTarget.src !== logoSrc) e.currentTarget.src = logoSrc;
+                if (logoSrc && e.currentTarget.src !== logoSrc)
+                  e.currentTarget.src = logoSrc;
               }}
             />
           </button>
@@ -144,7 +157,7 @@ export default function Header({
                 getSuggestions={provideSuggestions}
                 compact
                 autoFocus
-                usePortal={false}  // mobile: keep inside overlay
+                usePortal={false} // mobile: keep inside overlay
               />
               <div className="flex justify-end pt-2">
                 <button

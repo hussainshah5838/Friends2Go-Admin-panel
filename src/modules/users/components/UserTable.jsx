@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import SkeletonRow from "./SkeletonRow";

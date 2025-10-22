@@ -1,4 +1,3 @@
-"use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
 import { listUsers, createUser, updateUser, deleteUser } from "./api/users.service";

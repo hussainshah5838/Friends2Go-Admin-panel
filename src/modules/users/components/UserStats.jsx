@@ -1,4 +1,3 @@
-"use client";
 import React, { useMemo } from "react";
 
 // Firestore Timestamp | string | number | Date -> Date|null

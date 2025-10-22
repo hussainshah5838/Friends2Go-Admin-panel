@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Friend Admin Logo">
+  <title>Friend Admin Logo</title>
+  <desc>Rounded F monogram for Friend Admin</desc>
+  <g stroke="#111827" stroke-width="6" stroke-linecap="round" fill="none">
+    <!-- Vertical stem -->
+    <path d="M20 12v40"/>
+    <!-- Top arm -->
+    <path d="M20 12h26"/>
+    <!-- Middle arm -->
+    <path d="M20 28h20"/>
+  </g>
+</svg>

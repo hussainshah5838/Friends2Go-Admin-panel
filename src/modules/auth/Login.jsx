@@ -139,7 +139,7 @@ export default function Login() {
                     <MdMail className="text-muted" />
                     <input
                       className="bg-transparent flex-1 outline-none"
-                      placeholder="you@ballie.app"
+                      placeholder="you@gmail.app"
                       type="email"
                       autoComplete="email"
                       value={email}
@@ -260,7 +260,7 @@ export default function Login() {
             <input
               type="email"
               className="input w-full bg-transparent"
-              placeholder="you@ballie.app"
+              placeholder="you@gmail.app"
               value={resetEmail}
               onChange={(e) => setResetEmail(e.target.value)}
               autoFocus

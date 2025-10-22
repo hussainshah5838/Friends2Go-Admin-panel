@@ -109,7 +109,7 @@ export default function SubscriberDrawer({
               onChange={(e) =>
                 setModel((m) => ({ ...m, email: e.target.value }))
               }
-              placeholder="jesse@ballie.app"
+              placeholder="jesse@gmail.app"
             />
             {errors.email && (
               <div className="text-danger text-xs mt-1">{errors.email}</div>

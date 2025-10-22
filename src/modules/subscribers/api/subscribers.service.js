@@ -28,7 +28,7 @@ let MOCK = [
   {
     _id: "s1",
     name: "Jesse Carter",
-    email: "jesse@ballie.app",
+    email: "jesse@gmail.app",
     plan: "premium",
     status: "active",
     locale: "en",

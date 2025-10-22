@@ -8,6 +8,7 @@ import {
   MdLogout,
 } from "react-icons/md";
 import { NavLink } from "react-router-dom";
+import BrandLogo from "./components/BrandLogo";
 
 const NAV = [
   { icon: MdDashboard, label: "Dashboard", path: "/" },
@@ -40,8 +41,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         <div className="h-16 px-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {/* Reserved space where logo used to be */}
-            <div aria-hidden="true" className="h-10 w-10 rounded-lg md:h-12 lg:h-14" />
-            <span className="font-semibold">Admin</span>
+            <BrandLogo
+              name="Admin"
+              to="/"
+              size="md"
+            />
           </div>
           <button
             className="lg:hidden text-muted"

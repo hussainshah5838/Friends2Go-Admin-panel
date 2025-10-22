@@ -69,15 +69,4 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
-
-  <script type="module">
-    if (import.meta.env?.DEV) {
-      import("/@react-refresh").then((R) => {
-        R.injectIntoGlobalHook(window);
-        window.$RefreshReg$ = () => {};
-        window.$RefreshSig$ = () => (type) => type;
-        window.__vite_plugin_react_preamble_installed__ = true;
-      });
-    }
-  </script>
 </html>
